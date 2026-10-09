@@ -1,55 +1,14 @@
 import type { SpotifyTrack } from './types.ts';
 
-interface SpotifyTokenResponse {
-  access_token: string;
-}
-
-interface SpotifyPlaylistTracksResponse {
-  items: Array<{
-    track: {
-      id: string | null;
-      name: string;
-      artists?: Array<{ name: string }>;
-    } | null;
-  }>;
-  next: string | null;
+interface EmbedTrackItem {
+  uri?: string;
+  id?: string;
+  title?: string;
+  subtitle?: string;
+  artists?: Array<{ name: string }>;
 }
 
 export class SpotifyClient {
-  private clientId: string;
-  private clientSecret: string;
-  private accessToken: string | null = null;
-
-  constructor(clientId: string, clientSecret: string) {
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
-  }
-
-  private async authenticate(): Promise<string> {
-    if (this.accessToken) {
-      return this.accessToken;
-    }
-
-    const credentials = btoa(`${this.clientId}:${this.clientSecret}`);
-    const response = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${credentials}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'grant_type=client_credentials',
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Spotify authentication failed (${response.status}): ${errorText}`);
-    }
-
-    const data: SpotifyTokenResponse = await response.json();
-    this.accessToken = data.access_token;
-    return this.accessToken!;
-  }
-
   public extractPlaylistId(urlOrId: string): string {
     const trimmed = urlOrId.trim();
     const urlMatch = trimmed.match(/playlist\/([a-zA-Z0-9]{22})/);
@@ -70,34 +29,63 @@ export class SpotifyClient {
   }
 
   public async getPlaylistTracks(playlistId: string): Promise<SpotifyTrack[]> {
-    const token = await this.authenticate();
+    const embedUrl = `https://open.spotify.com/embed/playlist/${playlistId}`;
+    const response = await fetch(embedUrl, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch playlist embed page (${response.status}): ${response.statusText}`,
+      );
+    }
+
+    const html = await response.text();
+    const match = html.match(
+      /<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/s,
+    );
+
+    if (!match) {
+      throw new Error(
+        'Could not find playlist data on Spotify embed page. Ensure the playlist is public.',
+      );
+    }
+
+    const parsed = JSON.parse(match[1]);
+    const trackList: EmbedTrackItem[] = parsed?.props?.pageProps?.state?.data?.entity?.trackList;
+
+    if (!Array.isArray(trackList)) {
+      throw new Error(
+        'Could not find trackList in Spotify embed data. Ensure the playlist is public and contains tracks.',
+      );
+    }
+
     const tracks: SpotifyTrack[] = [];
-    let nextUrl: string | null =
-      `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=100&fields=items(track(id,name,artists(name))),next`;
+    for (const item of trackList) {
+      let id = item.id || '';
+      if (!id && item.uri) {
+        const parts = item.uri.split(':');
+        id = parts[parts.length - 1];
+      }
 
-    while (nextUrl) {
-      const response: Response = await fetch(nextUrl, {
-        headers: { 'Authorization': `Bearer ${token}` },
+      if (!id) continue;
+
+      let artists: Array<{ name: string }> = [];
+      if (Array.isArray(item.artists)) {
+        artists = item.artists.map((a) => ({ name: a.name }));
+      } else if (typeof item.subtitle === 'string') {
+        const cleaned = item.subtitle.replace(/\u00a0/g, ' ');
+        artists = cleaned.split(/,\s*/).map((name) => ({ name: name.trim() }));
+      }
+
+      tracks.push({
+        id,
+        name: item.title ?? 'Unknown Title',
+        artists,
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Failed to fetch playlist tracks (${response.status}): ${errorText}`,
-        );
-      }
-
-      const data: SpotifyPlaylistTracksResponse = await response.json();
-      for (const item of data.items) {
-        if (item.track && item.track.id) {
-          tracks.push({
-            id: item.track.id,
-            name: item.track.name,
-            artists: item.track.artists ?? [],
-          });
-        }
-      }
-      nextUrl = data.next;
     }
 
     return tracks;

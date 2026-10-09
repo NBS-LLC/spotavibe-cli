@@ -18,17 +18,7 @@ async function main() {
     Deno.exit(1);
   }
 
-  const clientId = Deno.env.get('SPOTIFY_CLIENT_ID');
-  const clientSecret = Deno.env.get('SPOTIFY_CLIENT_SECRET');
-
-  if (!clientId || !clientSecret) {
-    console.error(
-      'Error: SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET environment variables must be set.',
-    );
-    Deno.exit(1);
-  }
-
-  const client = new SpotifyClient(clientId, clientSecret);
+  const client = new SpotifyClient();
 
   try {
     const playlistId = client.extractPlaylistId(playlistInput);
