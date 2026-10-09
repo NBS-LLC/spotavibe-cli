@@ -4,8 +4,7 @@ export interface SpotifyTrack {
   artists: Array<{ name: string }>;
 }
 
-export interface SpotifyAudioFeatures {
-  id: string;
+export interface AudioFeatures {
   tempo: number;
   key: number;
   mode: number;

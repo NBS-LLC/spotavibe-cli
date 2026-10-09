@@ -1,5 +1,6 @@
 import { parseArgs } from '@std/cli/parse-args';
 import { SpotifyClient } from './spotify.ts';
+import { getAudioFeatures } from './reccobeats.ts';
 import { getCamelotKey, getMusicalKey } from './music_theory.ts';
 import { generateCsv } from './csv.ts';
 import type { PlaylistTrackRow } from './types.ts';
@@ -44,7 +45,7 @@ async function main() {
 
     console.log('Fetching audio features (tempo, key, energy)...');
     const trackIds = tracks.map((t) => t.id);
-    const featuresMap = await client.getAudioFeatures(trackIds);
+    const featuresMap = await getAudioFeatures(trackIds);
 
     const rows: PlaylistTrackRow[] = [];
     for (const track of tracks) {
