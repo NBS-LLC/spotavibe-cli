@@ -73,7 +73,7 @@ async function main() {
     }
 
     const csvContent = generateCsv(rows);
-    const outputPath = flags.output;
+    const outputPath: string = flags.output ?? 'out/playlist.csv';
 
     const lastSlash = outputPath.lastIndexOf('/');
     if (lastSlash > 0) {

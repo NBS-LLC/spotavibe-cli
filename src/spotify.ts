@@ -1,5 +1,20 @@
 import type { SpotifyAudioFeatures, SpotifyTrack } from './types.ts';
 
+interface SpotifyTokenResponse {
+  access_token: string;
+}
+
+interface SpotifyPlaylistTracksResponse {
+  items: Array<{
+    track: {
+      id: string | null;
+      name: string;
+      artists?: Array<{ name: string }>;
+    } | null;
+  }>;
+  next: string | null;
+}
+
 export class SpotifyClient {
   private clientId: string;
   private clientSecret: string;
@@ -30,7 +45,7 @@ export class SpotifyClient {
       throw new Error(`Spotify authentication failed (${response.status}): ${errorText}`);
     }
 
-    const data = await response.json();
+    const data: SpotifyTokenResponse = await response.json();
     this.accessToken = data.access_token;
     return this.accessToken!;
   }
@@ -61,7 +76,7 @@ export class SpotifyClient {
       `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=100&fields=items(track(id,name,artists(name))),next`;
 
     while (nextUrl) {
-      const response = await fetch(nextUrl, {
+      const response: Response = await fetch(nextUrl, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
@@ -72,7 +87,7 @@ export class SpotifyClient {
         );
       }
 
-      const data = await response.json();
+      const data: SpotifyPlaylistTracksResponse = await response.json();
       for (const item of data.items) {
         if (item.track && item.track.id) {
           tracks.push({
