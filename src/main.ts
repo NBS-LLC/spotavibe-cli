@@ -14,7 +14,7 @@ async function main() {
 
   const playlistInput = flags._[0]?.toString();
   if (!playlistInput) {
-    console.error('Usage: ./run.sh <SPOTIFY_PLAYLIST_URL> [-o out/playlist.csv]');
+    console.error('Usage: spotavibe-cli <SPOTIFY_PLAYLIST_URL> [-o out/playlist.csv]');
     Deno.exit(1);
   }
 

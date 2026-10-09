@@ -1,4 +1,7 @@
 {
+  "name": "spotavibe-cli",
+  "version": "0.1.0",
+  "exports": "./src/main.ts",
   "tasks": {
     "start": "deno run --allow-net --allow-write --allow-read src/main.ts",
     "dev": "deno run --watch --allow-net --allow-write --allow-read src/main.ts",

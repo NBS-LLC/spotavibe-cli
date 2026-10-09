@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE_NAME="spotify-playlist-csv:dev"
+IMAGE_NAME="spotavibe-cli:dev"
 
 echo "Building development Docker image..."
 docker build -t "${IMAGE_NAME}" .
