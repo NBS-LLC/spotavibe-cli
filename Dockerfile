@@ -12,4 +12,4 @@ COPY . .
 # Pre-cache entrypoint
 RUN deno cache src/main.ts
 
-ENTRYPOINT ["deno", "run", "--allow-net", "--allow-env", "--allow-write", "--allow-read", "src/main.ts"]
+ENTRYPOINT ["deno", "run", "--allow-net", "--allow-write", "--allow-read", "src/main.ts"]
