@@ -21,7 +21,9 @@ async function main() {
   const clientSecret = Deno.env.get('SPOTIFY_CLIENT_SECRET');
 
   if (!clientId || !clientSecret) {
-    console.error('Error: SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET environment variables must be set.');
+    console.error(
+      'Error: SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET environment variables must be set.',
+    );
     Deno.exit(1);
   }
 

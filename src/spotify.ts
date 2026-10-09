@@ -107,8 +107,8 @@ export class SpotifyClient {
         if (response.status === 403) {
           console.warn(
             '\n⚠️  Spotify returned 403 Forbidden for /v1/audio-features.\n' +
-            '   Spotify has restricted audio features (BPM, key, energy) for developer apps.\n' +
-            '   Exporting playlist tracks with "N/A" for these metrics.\n'
+              '   Spotify has restricted audio features (BPM, key, energy) for developer apps.\n' +
+              '   Exporting playlist tracks with "N/A" for these metrics.\n',
           );
           return featuresMap;
         }
